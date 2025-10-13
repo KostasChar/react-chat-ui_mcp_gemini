@@ -1,70 +1,244 @@
-# Getting Started with Create React App
+# MCP + Gemini Chatbot UI
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A modern, ChatGPT-style web interface for your MCP + Gemini AI chatbot. Built with React and styled with Tailwind CSS.
+
+![Chatbot Interface](https://img.shields.io/badge/React-18+-blue.svg)
+![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-3.3-38bdf8.svg)
+
+## Features
+
+- 🎨 **Modern Dark Theme** - ChatGPT-inspired design
+- 💬 **Conversation History** - Messages persist during your session
+- 🔄 **Real-time Responses** - Smooth loading animations
+- 📱 **Responsive Design** - Works on desktop and mobile
+- 🎯 **Collapsible Sidebar** - Clean, organized interface
+- ⚡ **Fast & Lightweight** - Optimized performance
+
+## Screenshots
+
+### Main Chat Interface
+- Clean message bubbles for user and AI responses
+- Gradient avatars for visual distinction
+- Smooth scrolling to latest messages
+
+### Sidebar
+- Quick access to new conversations
+- Conversation history display
+- Branding section with AI assistant info
+
+## Prerequisites
+
+Before you begin, ensure you have:
+
+- **Node.js** (v14 or higher) - [Download here](https://nodejs.org/)
+- **npm** (comes with Node.js)
+- **Backend API** running on `http://localhost:9009`
+
+Check your Node.js version:
+```bash
+node --version
+```
+
+## Installation
+
+### 1. Clone or Create Project
+
+If starting fresh:
+```bash
+npx create-react-app my-chatbot
+cd my-chatbot
+```
+
+### 2. Install Dependencies
+
+```bash
+npm install lucide-react
+npm install -D tailwindcss@3.3.0 postcss autoprefixer
+```
+
+### 3. Configure Tailwind CSS
+
+Create `tailwind.config.js` in your project root:
+```javascript
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./src/**/*.{js,jsx,ts,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+```
+
+Create `postcss.config.js` in your project root:
+```javascript
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+```
+
+### 4. Update CSS
+
+Replace contents of `src/index.css`:
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
+
+### 5. Replace App Component
+
+Copy the chatbot code into `src/App.js`
+
+### 6. Start Development Server
+
+```bash
+npm start
+```
+
+The app will open at `http://localhost:3000`
+
+## Backend Setup
+
+This UI expects a backend API running at `http://localhost:9009/query`
+
+### API Endpoint Requirements
+
+**POST** `/query`
+- **Request Body**: `{ "query": "your question here" }`
+- **Response**: `{ "response": "AI response here" }`
+
+Example with Node.js/Express:
+```javascript
+app.post('/query', async (req, res) => {
+  const { query } = req.body;
+  // Process with your MCP + Gemini backend
+  const aiResponse = await processQuery(query);
+  res.json({ response: aiResponse });
+});
+```
+
+## Project Structure
+
+```
+my-chatbot/
+├── public/
+│   └── index.html
+├── src/
+│   ├── App.js           # Main chat component
+│   ├── index.js         # React entry point
+│   └── index.css        # Tailwind imports
+├── package.json
+├── tailwind.config.js
+└── postcss.config.js
+```
+
+## Customization
+
+### Change Colors
+
+Edit the gradient colors in `App.js`:
+```javascript
+// Current: Purple to Pink gradient
+className="bg-gradient-to-br from-purple-500 to-pink-500"
+
+// Change to: Blue to Cyan
+className="bg-gradient-to-br from-blue-500 to-cyan-500"
+```
+
+### Change Backend URL
+
+Update the fetch URL in the `handleSubmit` function:
+```javascript
+const res = await fetch("YOUR_BACKEND_URL/query", {
+  // ...
+});
+```
+
+### Modify Branding
+
+Change the title and descriptions:
+```javascript
+<h1 className="text-lg font-semibold">Your App Name</h1>
+```
+
+## Troubleshooting
+
+### Issue: "react-scripts is not recognized"
+**Solution**: Run `npm install` first
+
+### Issue: UI shows plain HTML without styling
+**Solution**: Tailwind CSS is not configured. Follow the Tailwind setup steps above.
+
+### Issue: Backend connection error
+**Solution**: 
+1. Ensure backend is running on port 9009
+2. Check CORS settings on your backend
+3. Verify the API endpoint URL
+
+### Issue: npm cache errors
+**Solution**:
+```bash
+npm cache clean --force
+rm -rf node_modules package-lock.json
+npm install
+```
 
 ## Available Scripts
 
-In the project directory, you can run:
-
 ### `npm start`
-
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Runs the app in development mode at `http://localhost:3000`
 
 ### `npm run build`
+Builds the app for production to the `build` folder
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### `npm test`
+Launches the test runner
 
 ### `npm run eject`
+**Warning: This is irreversible!** Ejects from Create React App.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Technologies Used
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- **React 18+** - UI framework
+- **Tailwind CSS** - Utility-first styling
+- **Lucide React** - Icon library
+- **Fetch API** - HTTP requests
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Features Roadmap
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- [ ] Conversation persistence (save to database)
+- [ ] Export chat history
+- [ ] Multi-file upload support
+- [ ] Voice input
+- [ ] Dark/Light theme toggle
+- [ ] Markdown rendering for AI responses
+- [ ] Code syntax highlighting
 
-## Learn More
+## Contributing
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Feel free to submit issues and enhancement requests!
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## License
 
-### Code Splitting
+MIT License - feel free to use this project for your own applications.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Support
 
-### Analyzing the Bundle Size
+If you encounter issues:
+1. Check the Troubleshooting section above
+2. Ensure all dependencies are installed
+3. Verify your backend is running and accessible
+4. Check browser console for errors
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Acknowledgments
 
-### Making a Progressive Web App
+- Design inspired by ChatGPT
+- Built with Create React App
+- Icons by Lucide
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
