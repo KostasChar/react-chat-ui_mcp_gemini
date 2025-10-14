@@ -7,6 +7,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const messagesEndRef = useRef(null);
+  const abortControllerRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -22,30 +23,100 @@ function App() {
 
     const userMessage = { role: "user", content: input };
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = input;
     setInput("");
     setIsLoading(true);
 
+    // Add empty assistant message that will be updated with streaming content
+    const assistantMessageIndex = messages.length + 1;
+    setMessages(prev => [...prev, { role: "assistant", content: "" }]);
+
+    // Create abort controller for cancellation
+    abortControllerRef.current = new AbortController();
+
     try {
-      const res = await fetch("http://localhost:9009/gemini-mcp", {
+      console.log('Starting stream request...');
+      const res = await fetch("http://localhost:9009/gemini-mcp/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: input })
+        body: JSON.stringify({ query: currentInput }),
+        signal: abortControllerRef.current.signal,
       });
-      const data = await res.json();
-      const assistantMessage = { role: "assistant", content: data.response };
-      setMessages(prev => [...prev, assistantMessage]);
+
+      console.log('Response status:', res.status);
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        
+        if (done) {
+          console.log('Stream complete');
+          break;
+        }
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // Keep incomplete line in buffer
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6).trim();
+            
+            if (!data) continue;
+            
+            try {
+              const parsed = JSON.parse(data);
+              console.log('Parsed chunk:', parsed);
+              
+              if (parsed.chunk) {
+                setMessages(prev => {
+                  const newMessages = [...prev];
+                  newMessages[assistantMessageIndex] = {
+                    role: "assistant",
+                    content: newMessages[assistantMessageIndex].content + parsed.chunk
+                  };
+                  return newMessages;
+                });
+              } else if (parsed.error) {
+                throw new Error(parsed.error);
+              }
+            } catch (e) {
+              console.warn('Failed to parse SSE data:', data, e);
+            }
+          }
+        }
+      }
     } catch (err) {
-      console.error(err);
-      const errorMessage = { role: "assistant", content: "Error contacting backend. Please try again." };
-      setMessages(prev => [...prev, errorMessage]);
+      console.error('Stream error:', err);
+      if (err.name !== 'AbortError') {
+        setMessages(prev => {
+          const newMessages = [...prev];
+          newMessages[assistantMessageIndex] = {
+            role: "assistant",
+            content: "Error contacting backend. Please try again."
+          };
+          return newMessages;
+        });
+      }
     } finally {
       setIsLoading(false);
+      abortControllerRef.current = null;
     }
   };
 
   const newChat = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
     setMessages([]);
     setInput("");
+    setIsLoading(false);
   };
 
   return (
