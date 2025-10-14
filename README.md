@@ -32,7 +32,7 @@ Before you begin, ensure you have:
 
 - **Node.js** (v14 or higher) - [Download here](https://nodejs.org/)
 - **npm** (comes with Node.js)
-- **Backend API** running on `http://localhost:9009`
+- **Backend API** running on `http://localhost:9009/{endpoint}`
 
 Check your Node.js version:
 ```bash
