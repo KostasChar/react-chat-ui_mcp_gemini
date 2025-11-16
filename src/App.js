@@ -17,6 +17,9 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
+  // NEW — Provider selection
+  const [provider, setProvider] = useState("gemini");
+
   const messagesEndRef = useRef(null);
   const evtRef = useRef(null);
   const isSubmittingRef = useRef(false);
@@ -42,6 +45,14 @@ export default function App() {
     }
   };
 
+  // NEW – Provider → endpoint mapping
+  const PROVIDER_ENDPOINTS = {
+    gemini: "http://localhost:9013/gemini-mcp/stream?query=",
+    groq: "http://localhost:9013/groq-mcp/stream?query=",
+    openai: "http://localhost:9013/openai-mcp/stream?query=",
+    anthropic: "http://localhost:9013/anthropic-mcp/stream?query="
+  };
+
   const handleSubmit = () => {
     const trimmed = input.trim();
     if (!trimmed || isLoading || isSubmittingRef.current) return;
@@ -63,7 +74,10 @@ export default function App() {
     setInput("");
     setIsLoading(true);
 
-    const url = `http://localhost:9009/gemini-mcp/stream?query=${encodeURIComponent(trimmed)}`;
+    // NEW — Dynamic provider-based URL
+    const endpoint = PROVIDER_ENDPOINTS[provider] || PROVIDER_ENDPOINTS["gemini"];
+    const url = `${endpoint}${encodeURIComponent(trimmed)}`;
+
     const evtSource = new EventSource(url);
     evtRef.current = evtSource;
 
@@ -136,7 +150,7 @@ export default function App() {
             <Sparkles size={16} className="text-white"/>
           </div>
           <div className="text-sm">
-            <div className="font-medium">MCP + Gemini</div>
+            <div className="font-medium">MCP Chat</div>
             <div className="text-gray-500 text-xs">AI Assistant</div>
           </div>
         </div>
@@ -148,7 +162,22 @@ export default function App() {
           <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
             <Menu size={20} />
           </button>
-          <h1 className="text-lg font-semibold">MCP + Gemini Chat</h1>
+          <h1 className="text-lg font-semibold">MCP Chat</h1>
+
+          {/* NEW — LLM Provider Selector */}
+          <div className="flex items-center gap-2 ml-auto">
+            <label className="text-sm text-gray-600">Provider:</label>
+            <select
+              value={provider}
+              onChange={(e) => setProvider(e.target.value)}
+              className="border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none"
+            >
+              <option value="gemini">Gemini</option>
+              <option value="groq">Groq</option>
+              <option value="openai">OpenAI</option>
+              <option value="anthropic">Anthropic</option>
+            </select>
+          </div>
         </div>
 
         {/* Messages */}
@@ -159,7 +188,7 @@ export default function App() {
                 <Sparkles size={32} className="text-white"/>
               </div>
               <h2 className="text-3xl font-semibold mb-3">How can I help you today?</h2>
-              <p className="text-gray-500 text-center max-w-md">Ask me anything. I'm powered by MCP and Gemini.</p>
+              <p className="text-gray-500 text-center max-w-md">Ask me anything.</p>
             </div>
           ) : (
             <>
@@ -202,7 +231,7 @@ export default function App() {
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Message MCP + Gemini..."
+              placeholder={`Message ${provider}...`}
               disabled={isLoading}
               className="flex-1 bg-transparent px-6 py-4 pr-12 focus:outline-none placeholder-gray-500 disabled:opacity-50 text-gray-900"
             />
